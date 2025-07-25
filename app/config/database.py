@@ -1,7 +1,7 @@
+import functools
 import logging
 import threading
 from contextlib import contextmanager
-from functools import wraps
 from typing import Generator, Tuple, Callable
 
 from sqlalchemy import create_engine
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 _local = threading.local()
 
 engine = create_engine(
-    "sqlite:///pyscraper.db",
+    "sqlite:///master.db",
     connect_args={"check_same_thread": False},
 )
 SessionLocal = sessionmaker(
@@ -59,21 +59,22 @@ def get_db_session() -> Generator[Session, None, None]:
         session.close()
 
 
-def transactional(
-    read_only: bool = False,
-    rollback_for: Tuple = (Exception,),
-):
+def transactional(read_only: bool = False, rollback_for: Tuple = (Exception,)):
     def decorator(func: Callable):
-        @wraps(func)
+
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             current_session = get_current_session()
             if current_session and current_session.in_transaction():
                 return func(*args, **kwargs)
 
             session = current_session or SessionLocal()
+            if not current_session:
+                _set_current_session(session)
+
             try:
                 result = func(*args, **kwargs)
-                if not read_only and session.dirty:
+                if not read_only and (session.new or session.dirty or session.deleted):
                     session.commit()
                 return result
 

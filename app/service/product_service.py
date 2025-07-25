@@ -9,7 +9,7 @@ class ProductService:
     def __init__(self):
         self.product_repository = ProductRepository(Product)
 
-    @transactional
+    @transactional()
     def create_or_update_product(self):
         found_product = self.product_repository.find_by_platform_and_name(
             platform=ProductPlatformEnum.FITPET,

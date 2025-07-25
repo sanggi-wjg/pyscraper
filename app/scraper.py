@@ -1,42 +1,34 @@
 import httpx
 from bs4 import BeautifulSoup
-from fake_useragent import UserAgent
+
+from app.util.util_user_agent import get_fake_headers
 
 
-def get_user_agent():
-    """Returns a random User-Agent string."""
-    ua = UserAgent()
-    return ua.random
+class AboutPetScraper:
 
+    # def __init__(self):
+    #     super().__init__()
+    #     self.handler = HttpHandler()
 
-def scrape_product(url: str):
-    """Scrapes product information from a given URL."""
-    headers = {"User-Agent": get_user_agent()}
-    try:
-        with httpx.Client() as client:
-            response = client.get(url, headers=headers)
-            response.raise_for_status()  # Raise an exception for bad status codes
+    def scrape(self, url: str):
+        try:
+            headers = get_fake_headers()
+            headers["Accept"] = (
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+            )
+            headers["Accept-Language"] = "ko,en-US;q=0.9,en;q=0.8"
 
-        soup = BeautifulSoup(response.text, "html.parser")
+            with httpx.Client() as client:
+                response = client.get(url, headers=get_fake_headers())
+                response.raise_for_status()
 
-        # NOTE: These are placeholders. Selectors need to be adjusted for the actual website.
-        product_name = soup.select_one("#productName").text.strip()
-        price_str = (
-            soup.select_one("#price").text.strip().replace("₩", "").replace(",", "")
-        )
-        product_price = float(price_str)
-        platform = "ExampleShop"  # Placeholder
+            soup = BeautifulSoup(response.text, "html.parser")
+            for item in soup.select(".gd-item"):
+                link = item.select_one("a")["href"]
+                discount = item.select_one(".disc").text.strip()
+                name = item.select_one(".tit").text.strip()
+                price = item.select_one(".price em").text.strip()
+                print(f"Product: {name}, Price: {price}, Discount: {discount}, Link: {link}")
 
-        return {
-            "name": product_name,
-            "price": product_price,
-            "platform": platform,
-            "url": url,
-            "discount": "",  # Placeholder for discount info
-        }
-
-    except httpx.RequestError as e:
-        print(f"Error during request to {url}: {e}")
-    except Exception as e:
-        print(f"An error occurred during scraping: {e}")
-    return None
+        except httpx.RequestError as e:
+            return None

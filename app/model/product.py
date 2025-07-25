@@ -12,7 +12,7 @@ class Product(Base):
     platform = Column(Enum(ProductPlatformEnum), nullable=False)
     platform_product_id = Column(Integer)
     name = Column(String(256), nullable=False, index=True)
-    url = Column(String(1024), index=True)
+    url = Column(String(1024))
     created_at = Column(DateTime, default=func.now(), nullable=False)
     # relationships
     histories = relationship("ProductHistory", back_populates="product")
@@ -30,6 +30,7 @@ class ProductHistory(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     # relationships
     product_id = Column(Integer, ForeignKey("product.id", ondelete="RESTRICT"), nullable=False, index=True)
+    product = relationship("Product", back_populates="histories")
 
     def __repr__(self):
         return f"<ProductHistory(price='{self.price}', discount='{self.discount}', created_at='{self.created_at}')>"
