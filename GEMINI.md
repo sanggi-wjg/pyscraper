@@ -47,3 +47,13 @@
 - IP 차단 방지를 위해 랜덤 User-Agent 설정 (fake_useragent 사용)
 - 향후 다른 플랫폼 추가 시 코드 재사용성 고려 필요
 - 동일 상품이 여러 번 수집되지 않도록 product_id 또는 url, 상품명을 기준으로 중복 검사
+
+## 6. 프로젝트 구조
+
+- app/config: 설정 파일
+- app/enums: 이넘 파일
+- app/model: 데이터베이스 ORM 모델
+- app/repository: 레포지토리
+- app/service: 서비스
+- app/util: 유틸 함수
+- main: 코드 메인 실행 함수

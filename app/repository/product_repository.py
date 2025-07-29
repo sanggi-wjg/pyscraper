@@ -1,7 +1,7 @@
 from typing import Optional
 
+from app.entity.product import Product
 from app.enums.product_platform import ProductPlatformEnum
-from app.model.product import Product
 from app.service.base_repository import BaseRepository
 
 

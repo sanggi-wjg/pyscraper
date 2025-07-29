@@ -1,15 +1,15 @@
-import argparse
 import logging.config
 
 from app.config.database import create_tables
-from app.scraper import AboutPetScraper
+from app.scrape.aboutpet_scraper import AboutPetScraper
 
 LOGGING_CONFIG = {
     "version": 1,
-    "disable_existing_loggers": True,
+    "disable_existing_loggers": False,
     "formatters": {
         "default": {
-            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            "format": "%(asctime)s [%(levelname)-8s] %(name)-20s | %(funcName)s:%(lineno)d | %(message)s",
+            # "format": "%(asctime)s [%(levelname)s] %(name)s:%(funcName)s:%(lineno)d - %(message)s",
         },
     },
     "handlers": {
@@ -21,7 +21,7 @@ LOGGING_CONFIG = {
         },
     },
     "loggers": {
-        "": {  # root logger
+        "": {
             "level": "INFO",
             "handlers": ["default"],
             "propagate": False,
@@ -35,21 +35,11 @@ LOGGING_CONFIG = {
 }
 logging.config.dictConfig(LOGGING_CONFIG)
 
-
-def main():
-    parser = argparse.ArgumentParser(description="Product Price Collector")
-    parser.add_argument("--product", type=str, help="Product name to search for.")
-
-    args = parser.parse_args()
-
-
 if __name__ == "__main__":
     create_tables()
 
     scraper = AboutPetScraper()
-    scraper.scrape(
-        "https://aboutpet.co.kr/commonSearch?focus=10&srchWord=%ED%95%98%EB%A6%BC%EB%8D%94%EB%A6%AC%EC%96%BC%20%EB%8B%AD&cateCdL=12565"
-    )
+    scraper.scrape("")
 
     # service = ProductService()
     # service.create_or_update_product()
