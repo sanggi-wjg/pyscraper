@@ -1,0 +1,5 @@
+# PyScraper
+
+## TODO
+
+- [ ] Add celery

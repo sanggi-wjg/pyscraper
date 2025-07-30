@@ -16,6 +16,7 @@ argparse = "^1.4.0"
 black = "^25.1.0"
 pandas-stubs = "^2.3.0.250703"
 pydantic = "^2.11.7"
+celery = "^5.5.3"
 
 
 [build-system]

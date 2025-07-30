@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from app.model.scraped_product import ScrapedProduct
+from app.scraper.model.scraped_product import ScrapedProduct
 
 
 @dataclass(frozen=True, slots=True)

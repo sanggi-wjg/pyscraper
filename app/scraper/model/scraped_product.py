@@ -8,7 +8,7 @@ class ScrapedProduct(BaseModel):
     name: str
     price: str
     discount: Optional[str] = Field(default=None)
-    link: str
+    link: Optional[str] = Field(default=None)
 
     @classmethod
     @field_validator("name")
