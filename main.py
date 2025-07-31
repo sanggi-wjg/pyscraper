@@ -3,10 +3,7 @@ import logging.config
 from app.config.database import create_tables
 from app.entity import Product  # noqa: F401
 from app.entity import ProductPrice  # noqa: F401
-from app.scraper.sites.aboutpet_scraper import AboutPetScraper
-from app.scraper.sites.fitpet_scraper import FitpetScraper
-from app.service.product_service import ProductService
-from app.util.util_proxy import get_working_proxy
+from app.task.tasks import scrape_product_task
 
 LOGGING_CONFIG = {
     "version": 1,
@@ -31,7 +28,7 @@ LOGGING_CONFIG = {
             "filename": "app.log",
             "maxBytes": 1024 * 1024 * 10,  # 10MB
             "backupCount": 5,
-            "encoding": "utf-8",
+            "encoding": "UTF-8",
         },
     },
     "loggers": {
@@ -56,16 +53,4 @@ logging.config.dictConfig(LOGGING_CONFIG)
 
 if __name__ == "__main__":
     create_tables()
-    proxy = get_working_proxy()
-    if not proxy:
-        raise RuntimeError("No working proxy found. Please check your proxy settings.")
-
-    aboutpet_scrape_result = AboutPetScraper(proxy=proxy).scrape("하림더리얼")
-    print(aboutpet_scrape_result)
-
-    fitpet_scrape_result = FitpetScraper(proxy=proxy).scrape("하림더리얼")
-    print(fitpet_scrape_result)
-
-    service = ProductService()
-    service.create_or_update_product(aboutpet_scrape_result)
-    service.create_or_update_product(fitpet_scrape_result)
+    scrape_product_task()

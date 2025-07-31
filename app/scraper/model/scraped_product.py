@@ -9,7 +9,7 @@ class ScrapedProduct(BaseModel):
     price: Decimal = Field(ge=0)
     discount: Optional[int] = Field(default=None, ge=0)
     channel_product_id: Optional[str] = Field(default=None)
-    link: Optional[str] = Field(default=None)
+    url: Optional[str] = Field(default=None)
 
     model_config = ConfigDict(
         str_strip_whitespace=True,

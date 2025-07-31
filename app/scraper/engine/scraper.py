@@ -5,7 +5,7 @@ from typing import List, Optional, Dict
 import httpx
 from bs4 import BeautifulSoup
 
-from app.enums.channel import ChannelEnum
+from app.enums.channel_enum import ChannelEnum
 from app.scraper.model.scrape_result import ScrapeResult
 from app.scraper.model.scraped_product import ScrapedProduct
 from app.util.util_user_agent import get_fake_headers
@@ -17,7 +17,7 @@ class Scraper(ABC):
 
     def __init__(
         self,
-        proxy: str,
+        proxy: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
     ):
         self.proxy = proxy
@@ -30,12 +30,12 @@ class Scraper(ABC):
         )
         if headers:
             self.fake_headers.update(headers)
-        self.timeout = 5
+        self.timeout = 10
         self.channel = None
 
     def _request_http_get(self, url: str) -> Optional[httpx.Response]:
         try:
-            with httpx.Client(proxies=self.proxy, timeout=self.timeout) as client:
+            with httpx.Client(proxy=self.proxy, timeout=self.timeout) as client:
                 response = client.get(url, headers=self.fake_headers)
                 response.raise_for_status()
                 return response
@@ -55,7 +55,7 @@ class HttpScraper(Scraper):
         raise NotImplementedError("Scraper is an abstract class and should not be instantiated directly.")
 
     @abstractmethod
-    def _extract(self, response: httpx.Response) -> List[ScrapedProduct]:
+    def _transform(self, response: httpx.Response) -> List[ScrapedProduct]:
         raise NotImplementedError("Scraper is an abstract class and should not be instantiated directly.")
 
     def scrape(self, q: str, **kwargs) -> ScrapeResult:
@@ -74,8 +74,8 @@ class HttpScraper(Scraper):
             logger.error(f"Failed to retrieve data from URL: {search_url}")
             return ScrapeResult(False, self.channel, [], "Failed to retrieve data from the URL.")
 
-        extracted_products = self._extract(response)
-        logger.info(f"Extracted products: {extracted_products}")
+        extracted_products = self._transform(response)
+        logger.info(f"Scraped: {extracted_products}")
         return ScrapeResult(True, self.channel, extracted_products, None)
 
 
@@ -114,5 +114,5 @@ class BeautifulSoupScraper(Scraper):
 
         parser = self._get_parser(response)
         extracted_products = self._extract(parser)
-        logger.info(f"Extracted result: {extracted_products}")
+        logger.info(f"Scraped: {extracted_products}")
         return ScrapeResult(True, self.channel, extracted_products, None)

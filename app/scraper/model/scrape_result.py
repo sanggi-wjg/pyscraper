@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from app.enums.channel import ChannelEnum
+from app.enums.channel_enum import ChannelEnum
 from app.scraper.model.scraped_product import ScrapedProduct
 
 

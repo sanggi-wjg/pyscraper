@@ -19,7 +19,7 @@ def test_proxy_connection(
     proxy_url: str,
     test_url: str = "https://httpbin.org/ip",
 ) -> bool:
-    with httpx.Client(proxies=proxy_url, timeout=10) as client:
+    with httpx.Client(proxy=proxy_url, timeout=10) as client:
         try:
             response = client.get(test_url)
             response.raise_for_status()

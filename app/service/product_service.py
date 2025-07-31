@@ -28,7 +28,7 @@ class ProductService:
                 product = self.product_repository.save(
                     Product(
                         channel=scrape_result.channel,
-                        channel_product_id=scraped_product.platform_product_id,
+                        channel_product_id=scraped_product.channel_product_id,
                         name=scraped_product.name,
                         url=scraped_product.url,
                     )

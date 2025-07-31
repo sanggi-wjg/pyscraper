@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Enum, func
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
-from app.enums.channel import ChannelEnum
+from app.enums.channel_enum import ChannelEnum
 
 
 class Product(Base):
@@ -13,7 +13,7 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     channel = Column(Enum(ChannelEnum), nullable=False)
-    channel_product_id = Column(Integer)
+    channel_product_id = Column(String(256))
     name = Column(String(256), nullable=False, index=True)
     url = Column(String(1024))
     created_at = Column(DateTime, default=func.now(), nullable=False)

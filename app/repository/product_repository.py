@@ -1,7 +1,7 @@
 from typing import Optional
 
 from app.entity.product import Product
-from app.enums.channel import ChannelEnum
+from app.enums.channel_enum import ChannelEnum
 from app.service.base_repository import BaseRepository
 
 

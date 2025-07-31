@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 import httpx
 
-from app.enums.channel import ChannelEnum
+from app.enums.channel_enum import ChannelEnum
 from app.scraper.engine.scraper import HttpScraper
 from app.scraper.model.scraped_product import ScrapedProduct
 
@@ -33,7 +33,7 @@ class FitpetScraper(HttpScraper):
         )
         return f"{self.endpoint}?{query_string}"
 
-    def _extract(self, response: httpx.Response) -> List[ScrapedProduct]:
+    def _transform(self, response: httpx.Response) -> List[ScrapedProduct]:
         resp = response.json()
         products = resp.get("products", [])
         return [
@@ -42,7 +42,7 @@ class FitpetScraper(HttpScraper):
                 name=product["name"],
                 price=product["price"],
                 discount=product["discountRate"] if product.get("discountRate") else None,
-                link=f"https://www.fitpetmall.com/mall/products/{product['id']}",
+                url=f"https://www.fitpetmall.com/mall/products/{product['id']}",
             )
             for product in products
         ]
