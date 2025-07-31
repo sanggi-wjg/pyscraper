@@ -20,40 +20,45 @@
 ## 3. 핵심 기능
 
 - 데이터 수집
-    - 수집 방식: 웹 스크래핑 (BeautifulSoup 또는 Selenium) 또는 공식 API 사용
-        - 수집 주기: 정기적 (예: 1시간 간격) 또는 수동 수집 옵션
+    - 수집 방식: `httpx`와 `BeautifulSoup`을 사용한 비동기 웹 스크래핑
+        - 수집 주기: `Celery`를 활용한 정기적 (예: 1시간 간격) 또는 수동 수집 옵션
         - 예외 처리: 네트워크 오류, 데이터 파싱 실패 시 로그 기록
-        - 로그 처리: rotate 형태의 파일 로그를 저장
 - 데이터 저장
-    - 저장 형식: SQLite 데이터베이스 (가능한 간단한 테이블 구조: product_id, name, price, platform, discount, url, timestamp, ...)
+    - 저장 형식: SQLite 데이터베이스 (간단한 테이블 구조: product_id, name, price, platform, discount, url, timestamp, ...)
     - 데이터 정제: 가격 필드에서 숫자만 추출 (예: "₩1,500,000" → 1500000)
 - 데이터 표시
-    - CLI 기반 출력: 명령어 프롬프트에서 특정 상품의 가격 정보 표시 (예: python collector.py --product "고양이 사료")
+    - CLI 기반 출력: 명령어 프롬프트에서 특정 상품의 가격 정보 표시 (예: `python main.py --product "고양이 사료"`)
 - 알림 혹은 봇, 웹훅 등 기능 (향후 지원 예정)
     - 현재 단계: 데모에서는 제외
     - 향후 확장: 가격 변동 시 이메일 또는 메시지 알림
 
-## 4 기술 스택
+## 4. 기술 스택
 
 - 프로그래밍 언어: Python
-- DB: sqlalchemy, sqlite, pandas
-- 수집 라이브러리: BeautifulSoup or Selenium or httpx
+- DB: SQLAlchemy, SQLite, Pandas
+- 수집 라이브러리: BeautifulSoup, httpx, fake-useragent
+- 데이터 모델링: Pydantic
+- 비동기 작업: Celery
 - CLI: argparse
 - 패키지 관리자: poetry
-- 린트: black
+- 코드 포맷터: black
 
 ## 5. 주의사항
 
-- IP 차단 방지를 위해 랜덤 User-Agent 설정 (fake_useragent 사용)
+- IP 차단 방지를 위해 랜덤 User-Agent 설정 (`fake-useragent` 사용)
 - 향후 다른 플랫폼 추가 시 코드 재사용성 고려 필요
 - 동일 상품이 여러 번 수집되지 않도록 product_id 또는 url, 상품명을 기준으로 중복 검사
 
 ## 6. 프로젝트 구조
 
-- app/config: 설정 파일
-- app/enums: 이넘 파일
-- app/model: 데이터베이스 ORM 모델
-- app/repository: 레포지토리
-- app/service: 서비스
-- app/util: 유틸 함수
-- main: 코드 메인 실행 함수
+- `app/config`: 설정 파일 (예: 데이터베이스)
+- `app/entity`: SQLAlchemy ORM 모델
+- `app/enums`: 이넘(Enum) 정의 (예: 쇼핑몰 플랫폼)
+- `app/repository`: 데이터베이스와 상호작용하는 레포지토리
+- `app/scraper`: 스크래핑 관련 로직
+    - `app/scraper/engine`: 실제 스크래핑을 수행하는 엔진
+    - `app/scraper/model`: 스크래핑된 데이터의 Pydantic 모델
+    - `app/scraper/sites`: 각 쇼핑몰별 스크래퍼 구현체
+- `app/service`: 비즈니스 로직을 담당하는 서비스
+- `app/util`: 공통 유틸리티 함수
+- `main.py`: 코드 메인 실행 함수

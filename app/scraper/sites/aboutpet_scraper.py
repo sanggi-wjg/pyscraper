@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 
 from bs4 import BeautifulSoup
 
+from app.enums.channel import ChannelEnum
 from app.scraper.engine.scraper import BeautifulSoupScraper
 from app.scraper.model.scraped_product import ScrapedProduct
 
@@ -15,6 +16,7 @@ class AboutPetScraper(BeautifulSoupScraper):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.endpoint = "https://aboutpet.co.kr/commonSearch"
+        self.channel = ChannelEnum.ABOUT_PET
 
     def _build_search_url(self, q: str) -> str:
         if not self.endpoint:
@@ -37,7 +39,7 @@ class AboutPetScraper(BeautifulSoupScraper):
                 name=item.select_one(".tit").text,
                 price=item.select_one(".price em").text,
                 discount=None if not item.select_one(".disc") else item.select_one(".disc").text,
-                link=item.select_one("a")["href"],
+                link="https://aboutpet.co.kr/" + item.select_one("a")["href"],
             )
             for item in parser.select(".gd-item")
         ]

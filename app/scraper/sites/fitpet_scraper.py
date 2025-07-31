@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 import httpx
 
+from app.enums.channel import ChannelEnum
 from app.scraper.engine.scraper import HttpScraper
 from app.scraper.model.scraped_product import ScrapedProduct
 
@@ -12,6 +13,7 @@ class FitpetScraper(HttpScraper):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.endpoint = "https://api-v4.fitpet.kr/api/v3/products/search"
+        self.channel = ChannelEnum.FITPET
 
     def _build_search_url(self, q: str) -> str:
         if not self.endpoint:
@@ -36,11 +38,11 @@ class FitpetScraper(HttpScraper):
         products = resp.get("products", [])
         return [
             ScrapedProduct(
-                channel_product_id=str(product["id"]),
+                channel_product_id=product["id"],
                 name=product["name"],
-                price=str(product["price"]),
-                discount=str(product["discountRate"]) if product.get("discountRate") else None,
-                link=None,
+                price=product["price"],
+                discount=product["discountRate"] if product.get("discountRate") else None,
+                link=f"https://www.fitpetmall.com/mall/products/{product['id']}",
             )
             for product in products
         ]

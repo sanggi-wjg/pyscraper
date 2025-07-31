@@ -5,6 +5,7 @@ from typing import List, Optional, Dict
 import httpx
 from bs4 import BeautifulSoup
 
+from app.enums.channel import ChannelEnum
 from app.scraper.model.scrape_result import ScrapeResult
 from app.scraper.model.scraped_product import ScrapedProduct
 from app.util.util_user_agent import get_fake_headers
@@ -30,6 +31,7 @@ class Scraper(ABC):
         if headers:
             self.fake_headers.update(headers)
         self.timeout = 5
+        self.channel = None
 
     def _request_http_get(self, url: str) -> Optional[httpx.Response]:
         try:
@@ -57,9 +59,12 @@ class HttpScraper(Scraper):
         raise NotImplementedError("Scraper is an abstract class and should not be instantiated directly.")
 
     def scrape(self, q: str, **kwargs) -> ScrapeResult:
+        if not self.channel:
+            logger.error("Channel must be set for the scraper.")
+            return ScrapeResult(False, ChannelEnum.VOID, [], "Channel must be set for the scraper.")
         if not q:
             logger.warning("Search query cannot be empty.")
-            return ScrapeResult(False, [], "Search query cannot be empty.")
+            return ScrapeResult(False, self.channel, [], "Search query cannot be empty.")
 
         search_url = self._build_search_url(q)
         logger.info(f"Search URL: {search_url}")
@@ -67,11 +72,11 @@ class HttpScraper(Scraper):
         response = self._request_http_get(search_url)
         if response is None:
             logger.error(f"Failed to retrieve data from URL: {search_url}")
-            return ScrapeResult(False, [], "Failed to retrieve data from the URL.")
+            return ScrapeResult(False, self.channel, [], "Failed to retrieve data from the URL.")
 
         extracted_products = self._extract(response)
         logger.info(f"Extracted products: {extracted_products}")
-        return ScrapeResult(True, extracted_products, None)
+        return ScrapeResult(True, self.channel, extracted_products, None)
 
 
 class BeautifulSoupScraper(Scraper):
@@ -92,9 +97,12 @@ class BeautifulSoupScraper(Scraper):
         return BeautifulSoup(response.text, self.beautiful_soup_features)
 
     def scrape(self, q: str, **kwargs) -> ScrapeResult:
+        if not self.channel:
+            logger.error("Channel must be set for the scraper.")
+            return ScrapeResult(False, ChannelEnum.VOID, [], "Channel must be set for the scraper.")
         if not q:
             logger.warning("Search query cannot be empty.")
-            return ScrapeResult(False, [], "Search query cannot be empty.")
+            return ScrapeResult(False, self.channel, [], "Search query cannot be empty.")
 
         search_url = self._build_search_url(q)
         logger.info(f"Search URL: {search_url}")
@@ -102,9 +110,9 @@ class BeautifulSoupScraper(Scraper):
         response = self._request_http_get(search_url)
         if response is None:
             logger.error(f"Failed to retrieve data from URL: {search_url}")
-            return ScrapeResult(False, [], "Failed to retrieve data from the URL.")
+            return ScrapeResult(False, self.channel, [], "Failed to retrieve data from the URL.")
 
         parser = self._get_parser(response)
         extracted_products = self._extract(parser)
         logger.info(f"Extracted result: {extracted_products}")
-        return ScrapeResult(True, extracted_products, None)
+        return ScrapeResult(True, self.channel, extracted_products, None)

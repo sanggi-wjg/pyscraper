@@ -1,4 +1,5 @@
 import logging
+import random
 from typing import Optional
 
 import httpx
@@ -6,11 +7,12 @@ import httpx
 logger = logging.getLogger(__name__)
 
 # https://free-proxy-list.net/ko/anonymous-proxy.html
-CANDIDATE_PROXIES = [
+_CANDIDATE_PROXIES = [
     "http://57.129.81.201:8080",
     "http://103.127.252.57:3128",
     "http://8.219.97.248:80",
 ]
+random.shuffle(_CANDIDATE_PROXIES)
 
 
 def test_proxy_connection(
@@ -31,11 +33,11 @@ def test_proxy_connection(
 
 
 def get_working_proxy() -> Optional[str]:
-    logger.info("Searching for a working proxy...")
+    logger.info("🔍 Searching for a working proxy...")
 
-    for proxy in CANDIDATE_PROXIES:
+    for proxy in _CANDIDATE_PROXIES:
         if test_proxy_connection(proxy):
-            logger.info(f"Using working proxy: {proxy}")
+            logger.info(f"✅ Using working proxy: {proxy}")
             return proxy
 
     logger.error("❌ No working proxy found.")

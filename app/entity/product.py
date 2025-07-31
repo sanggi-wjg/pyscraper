@@ -1,36 +1,30 @@
-from sqlalchemy import Column, Integer, String, DateTime, Numeric, Enum, func, ForeignKey
+from decimal import Decimal
+from typing import Optional
+
+from sqlalchemy import Column, Integer, String, DateTime, Enum, func
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
-from app.enums.product_platform import ProductPlatformEnum
+from app.enums.channel import ChannelEnum
 
 
 class Product(Base):
     __tablename__ = "product"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    platform = Column(Enum(ProductPlatformEnum), nullable=False)
-    platform_product_id = Column(Integer)
+    channel = Column(Enum(ChannelEnum), nullable=False)
+    channel_product_id = Column(Integer)
     name = Column(String(256), nullable=False, index=True)
     url = Column(String(1024))
     created_at = Column(DateTime, default=func.now(), nullable=False)
     # relationships
-    histories = relationship("ProductHistory", back_populates="product")
+    prices = relationship("ProductPrice", back_populates="product")
 
     def __repr__(self):
-        return f"<Product(name='{self.name}', platform='{self.platform}', url='{self.url}')>"
+        return f"<Product(name='{self.name}', platform='{self.channel}', url='{self.url}')>"
 
-
-class ProductHistory(Base):
-    __tablename__ = "product_history"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    price = Column(Numeric(10, 0), nullable=False)
-    discount = Column(Numeric(3, 0))
-    created_at = Column(DateTime, default=func.now(), nullable=False)
-    # relationships
-    product_id = Column(Integer, ForeignKey("product.id", ondelete="RESTRICT"), nullable=False, index=True)
-    product = relationship("Product", back_populates="histories")
-
-    def __repr__(self):
-        return f"<ProductHistory(price='{self.price}', discount='{self.discount}', created_at='{self.created_at}')>"
+    def add_price(self, price: Decimal, discount: Optional[int]) -> "ProductPrice":
+        from app.entity.product_price import ProductPrice
+        new_price = ProductPrice(price=price, discount=discount)
+        self.prices.append(new_price)
+        return new_price
