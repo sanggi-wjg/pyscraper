@@ -1,8 +1,8 @@
+import functools
 import logging
 import threading
 from contextlib import contextmanager
-from functools import wraps
-from typing import Generator, Tuple, Callable
+from typing import Generator, Callable
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 _local = threading.local()
 
 engine = create_engine(
-    "sqlite:///pyscraper.db",
+    "sqlite:///master.db",
     connect_args={"check_same_thread": False},
 )
 SessionLocal = sessionmaker(
@@ -59,36 +59,32 @@ def get_db_session() -> Generator[Session, None, None]:
         session.close()
 
 
-def transactional(
-    read_only: bool = False,
-    rollback_for: Tuple = (Exception,),
-):
+def transactional():
     def decorator(func: Callable):
-        @wraps(func)
+
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             current_session = get_current_session()
             if current_session and current_session.in_transaction():
                 return func(*args, **kwargs)
 
             session = current_session or SessionLocal()
+            if not current_session:
+                _set_current_session(session)
+
             try:
                 result = func(*args, **kwargs)
-                if not read_only and session.dirty:
-                    session.commit()
+                session.commit()
                 return result
 
-            except rollback_for as e:
-                logger.error(f"Rollback transaction for {func.__name__}: {e}")
-                session.rollback()
-                raise
             except Exception as e:
                 logger.error(f"Unexpected error during transaction for {func.__name__}: {e}")
                 session.rollback()
                 raise
+
             finally:
-                if not current_session:
-                    _clear_current_session()
-                    session.close()
+                _clear_current_session()
+                session.close()
 
         return wrapper
 
