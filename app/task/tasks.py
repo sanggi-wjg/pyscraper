@@ -23,9 +23,9 @@ def scrape_product_task():
     service = ProductService()
 
     aboutpet_scrape_result = AboutPetScraper(proxy=proxy).scrape(keyword)
-    service.create_or_update_product(aboutpet_scrape_result)
+    service.sync_product(aboutpet_scrape_result)
 
     fitpet_scrape_result = FitpetScraper(proxy=proxy).scrape(keyword)
-    service.create_or_update_product(fitpet_scrape_result)
+    service.sync_product(fitpet_scrape_result)
 
     logger.info(f"[SCRAPE_PRODUCT_TASK] Finished with {keyword}")

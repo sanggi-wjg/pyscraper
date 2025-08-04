@@ -18,7 +18,7 @@ class ProductService:
         self.product_history_repository = ProductHistoryRepository(ProductPrice)
 
     @transactional()
-    def create_or_update_product(self, scrape_result: ScrapeResult):
+    def sync_product(self, scrape_result: ScrapeResult):
         if not scrape_result.is_success:
             return
 
@@ -42,10 +42,5 @@ class ProductService:
 
     @transactional()
     def get_price_history_by_product_name(self, product_name: str) -> List[ProductModel]:
-        result = []
-        products = self.product_repository.find_all_by_name_like(product_name)
-
-        for product in products:
-            result.append(ProductModel.model_validate(product))
-
-        return result
+        products = self.product_repository.find_all_with_related_by_name(product_name)
+        return [ProductModel.model_validate(product) for product in products]

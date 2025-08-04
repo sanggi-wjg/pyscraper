@@ -72,24 +72,19 @@ def main():
     elif args.product_name:
         logger.info(f"Searching for product: {args.product_name}")
         product_service = ProductService()
-        results = product_service.get_price_history_by_product_name(args.product_name)
-        print(results)
+        product_models = product_service.get_price_history_by_product_name(args.product_name)
 
-        # if not results:
-        #     logger.info(f"No products found matching '{args.product_name}'.")
-        #     return
-        #
-        # for result in results:
-        #     product = result["product"]
-        #     price_history = result["price_history"]
-        #
-        #     logger.info(f"'{product.name}' 가격 변동 내역:")
-        #     logger.info("-" * 40)
-        #     for price in price_history:
-        #         logger.info(
-        #             f"- {price.created_at.strftime('%Y-%m-%d %H:%M:%S')} | {price.price:,}원 (할인: {price.discount_price:,}원)"
-        #         )
-        #     logger.info("-" * 40)
+        if not product_models:
+            logger.info(f"No products found matching '{args.product_name}'.")
+            return
+
+        for product in product_models:
+            logger.info(f"[{product.channel.name}] '{product.name}' 가격 변동 내역:")
+            logger.info("-" * 40)
+            for price in product.prices:
+                discount = "" if price.discount is None else f" (할인: {price.discount:,}%)"
+                logger.info(f"- {price.created_at.strftime('%Y-%m-%d %H:%M:%S')} | {price.price:,}원 {discount}")
+            logger.info("-" * 40)
 
     else:
         parser.print_help()
