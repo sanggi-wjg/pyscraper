@@ -4,16 +4,14 @@ from typing import Optional
 from pydantic import BaseModel, field_validator, Field, ConfigDict
 
 
-class ScrapedProduct(BaseModel):
+class ScrapedProductModel(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str
     price: Decimal = Field(ge=0)
     discount: Optional[int] = Field(default=None, ge=0)
     channel_product_id: Optional[str] = Field(default=None)
     url: Optional[str] = Field(default=None)
-
-    model_config = ConfigDict(
-        str_strip_whitespace=True,
-    )
 
     @field_validator("price", mode="before")
     @classmethod

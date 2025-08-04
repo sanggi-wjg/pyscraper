@@ -1,6 +1,13 @@
-from app.entity.product_price import ProductHistory
+from app.entity.product_price import ProductPrice
 from app.service.base_repository import BaseRepository
 
 
-class ProductHistoryRepository(BaseRepository[ProductHistory]):
-    pass
+class ProductHistoryRepository(BaseRepository[ProductPrice]):
+
+    def find_by_product_id(self, product_id: int) -> list[ProductPrice]:
+        return (
+            self.session.query(ProductPrice)
+            .filter(ProductPrice.product_id == product_id)
+            .order_by(ProductPrice.id.desc())
+            .all()
+        )

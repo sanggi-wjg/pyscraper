@@ -13,7 +13,7 @@ app.conf.timezone = "UTC"
 app.conf.beat_schedule = {
     "scrape_product_task": {
         "task": "app.task.tasks.scrape_product_task",
-        "schedule": crontab(minute="*/1"),
+        "schedule": crontab(hour="*/1", minute=0),  # Every hour
         "args": (),
     },
 }

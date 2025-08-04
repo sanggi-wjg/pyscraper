@@ -51,7 +51,7 @@
 
 ## 6. 프로젝트 구조
 
-- `app/config`: 설정 파일 (예: 데이터베이스)
+- `app/config`: 설정 파일 (예: 데이터베이스, Celery)
 - `app/entity`: SQLAlchemy ORM 모델
 - `app/enums`: 이넘(Enum) 정의 (예: 쇼핑몰 플랫폼)
 - `app/repository`: 데이터베이스와 상호작용하는 레포지토리
@@ -60,5 +60,6 @@
     - `app/scraper/model`: 스크래핑된 데이터의 Pydantic 모델
     - `app/scraper/sites`: 각 쇼핑몰별 스크래퍼 구현체
 - `app/service`: 비즈니스 로직을 담당하는 서비스
+- `app/task`: Celery를 이용한 비동기 작업 정의
 - `app/util`: 공통 유틸리티 함수
 - `main.py`: 코드 메인 실행 함수

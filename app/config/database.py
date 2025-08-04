@@ -2,7 +2,7 @@ import functools
 import logging
 import threading
 from contextlib import contextmanager
-from typing import Generator, Tuple, Callable
+from typing import Generator, Callable
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
@@ -59,7 +59,7 @@ def get_db_session() -> Generator[Session, None, None]:
         session.close()
 
 
-def transactional(read_only: bool = False, rollback_for: Tuple = (Exception,)):
+def transactional():
     def decorator(func: Callable):
 
         @functools.wraps(func)
@@ -74,22 +74,17 @@ def transactional(read_only: bool = False, rollback_for: Tuple = (Exception,)):
 
             try:
                 result = func(*args, **kwargs)
-                if not read_only and (session.new or session.dirty or session.deleted):
-                    session.commit()
+                session.commit()
                 return result
 
-            except rollback_for as e:
-                logger.error(f"Rollback transaction for {func.__name__}: {e}")
-                session.rollback()
-                raise
             except Exception as e:
                 logger.error(f"Unexpected error during transaction for {func.__name__}: {e}")
                 session.rollback()
                 raise
+
             finally:
-                if not current_session:
-                    _clear_current_session()
-                    session.close()
+                _clear_current_session()
+                session.close()
 
         return wrapper
 

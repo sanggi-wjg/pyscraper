@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from app.enums.channel_enum import ChannelEnum
 from app.scraper.engine.scraper import BeautifulSoupScraper
-from app.scraper.model.scraped_product import ScrapedProduct
+from app.scraper.model.scraper_models import ScrapedProductModel
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +32,9 @@ class AboutPetScraper(BeautifulSoupScraper):
         )
         return f"{self.endpoint}?{query_string}"
 
-    def _extract(self, parser: BeautifulSoup, **kwargs) -> List[ScrapedProduct]:
+    def _extract(self, parser: BeautifulSoup, **kwargs) -> List[ScrapedProductModel]:
         return [
-            ScrapedProduct(
+            ScrapedProductModel(
                 channel_product_id=item.select_one("a")["data-content"],
                 name=item.select_one(".tit").text,
                 price=item.select_one(".price em").text,

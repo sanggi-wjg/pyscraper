@@ -12,4 +12,7 @@ class ProductRepository(BaseRepository[Product]):
         channel: ChannelEnum,
         name: str,
     ) -> Optional[Product]:
-        return self.session.query(Product).filter_by(channel=channel, name=name).first()
+        return self.session.query(Product).filter(Product.channel == channel, Product.name == name).first()
+
+    def find_all_by_name_like(self, name: str) -> list[Product]:
+        return self.session.query(Product).filter(Product.name.contains(name)).order_by(Product.id.asc()).all()

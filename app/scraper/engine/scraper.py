@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 from app.enums.channel_enum import ChannelEnum
 from app.scraper.model.scrape_result import ScrapeResult
-from app.scraper.model.scraped_product import ScrapedProduct
+from app.scraper.model.scraper_models import ScrapedProductModel
 from app.util.util_user_agent import get_fake_headers
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ class HttpScraper(Scraper):
         raise NotImplementedError("Scraper is an abstract class and should not be instantiated directly.")
 
     @abstractmethod
-    def _transform(self, response: httpx.Response) -> List[ScrapedProduct]:
+    def _transform(self, response: httpx.Response) -> List[ScrapedProductModel]:
         raise NotImplementedError("Scraper is an abstract class and should not be instantiated directly.")
 
     def scrape(self, q: str, **kwargs) -> ScrapeResult:
@@ -90,7 +90,7 @@ class BeautifulSoupScraper(Scraper):
         raise NotImplementedError("Scraper is an abstract class and should not be instantiated directly.")
 
     @abstractmethod
-    def _extract(self, parser: BeautifulSoup, **kwargs) -> List[ScrapedProduct]:
+    def _extract(self, parser: BeautifulSoup, **kwargs) -> List[ScrapedProductModel]:
         raise NotImplementedError("Scraper is an abstract class and should not be instantiated directly.")
 
     def _get_parser(self, response: httpx.Response) -> BeautifulSoup:

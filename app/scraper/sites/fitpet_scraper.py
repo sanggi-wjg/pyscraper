@@ -5,7 +5,7 @@ import httpx
 
 from app.enums.channel_enum import ChannelEnum
 from app.scraper.engine.scraper import HttpScraper
-from app.scraper.model.scraped_product import ScrapedProduct
+from app.scraper.model.scraper_models import ScrapedProductModel
 
 
 class FitpetScraper(HttpScraper):
@@ -33,11 +33,11 @@ class FitpetScraper(HttpScraper):
         )
         return f"{self.endpoint}?{query_string}"
 
-    def _transform(self, response: httpx.Response) -> List[ScrapedProduct]:
+    def _transform(self, response: httpx.Response) -> List[ScrapedProductModel]:
         resp = response.json()
         products = resp.get("products", [])
         return [
-            ScrapedProduct(
+            ScrapedProductModel(
                 channel_product_id=product["id"],
                 name=product["name"],
                 price=product["price"],

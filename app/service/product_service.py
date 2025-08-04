@@ -1,9 +1,12 @@
 import logging
+from typing import List
 
 from app.config.database import transactional
-from app.entity.product import Product
+from app.entity import Product, ProductPrice
+from app.repository.product_history_repository import ProductHistoryRepository
 from app.repository.product_repository import ProductRepository
 from app.scraper.model.scrape_result import ScrapeResult
+from app.service.model.service_models import ProductModel
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +15,7 @@ class ProductService:
 
     def __init__(self):
         self.product_repository = ProductRepository(Product)
+        self.product_history_repository = ProductHistoryRepository(ProductPrice)
 
     @transactional()
     def create_or_update_product(self, scrape_result: ScrapeResult):
@@ -35,3 +39,13 @@ class ProductService:
                 )
 
             product.add_price(scraped_product.price, scraped_product.discount)
+
+    @transactional()
+    def get_price_history_by_product_name(self, product_name: str) -> List[ProductModel]:
+        result = []
+        products = self.product_repository.find_all_by_name_like(product_name)
+
+        for product in products:
+            result.append(ProductModel.model_validate(product))
+
+        return result
