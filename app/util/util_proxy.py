@@ -43,6 +43,3 @@ def get_working_proxy() -> Optional[str]:
 
     logger.error("❌ No working proxy found. ❌")
     return None
-
-
-get_working_proxy()
