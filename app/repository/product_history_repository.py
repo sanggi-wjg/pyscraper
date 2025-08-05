@@ -1,5 +1,5 @@
 from app.entity.product_price import ProductPrice
-from app.service.base_repository import BaseRepository
+from app.repository.base_repository import BaseRepository
 
 
 class ProductHistoryRepository(BaseRepository[ProductPrice]):

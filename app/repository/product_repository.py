@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from app.entity import ProductPrice
 from app.entity.product import Product
 from app.enums.channel_enum import ChannelEnum
-from app.service.base_repository import BaseRepository
+from app.repository.base_repository import BaseRepository
 
 
 class ProductRepository(BaseRepository[Product]):

@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Column, Integer, String, DateTime, Enum, func
+from sqlalchemy import Column, Integer, String, DateTime, Enum, func, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
@@ -17,8 +17,12 @@ class Product(Base):
     name = Column(String(256), nullable=False, index=True)
     url = Column(String(1024))
     created_at = Column(DateTime, default=func.now(), nullable=False)
+
     # relationships
     prices = relationship("ProductPrice", back_populates="product")
+
+    keyword_id = Column(Integer, ForeignKey("keyword.id", ondelete="RESTRICT"), nullable=True, index=True)
+    keyword = relationship("Keyword", back_populates="products")
 
     def __repr__(self):
         return f"<Product(name='{self.name}', platform='{self.channel}', url='{self.url}')>"

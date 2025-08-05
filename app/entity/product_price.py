@@ -11,6 +11,7 @@ class ProductPrice(Base):
     price = Column(Numeric(10, 0), nullable=False)
     discount = Column(Numeric(3, 0))
     created_at = Column(DateTime, default=func.now(), nullable=False)
+
     # relationships
     product_id = Column(Integer, ForeignKey("product.id", ondelete="RESTRICT"), nullable=False, index=True)
     product = relationship("Product", back_populates="prices")
