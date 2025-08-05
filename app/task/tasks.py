@@ -38,9 +38,9 @@ def scrape_product_task_with_keyword(proxy: str, keyword_id: int, keyword_word: 
     service = ProductService()
 
     aboutpet_scrape_result = AboutPetScraper(proxy=proxy).scrape(keyword_word)
-    service.sync_product(aboutpet_scrape_result)
+    service.sync_product(aboutpet_scrape_result, keyword_id)
 
     fitpet_scrape_result = FitpetScraper(proxy=proxy).scrape(keyword_word)
-    service.sync_product(fitpet_scrape_result)
+    service.sync_product(fitpet_scrape_result, keyword_id)
 
     logger.info(f"[SCRAPE_PRODUCT_TASK_WITH_KEYWORD] Finished with {keyword_word}")
