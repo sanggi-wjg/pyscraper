@@ -2,56 +2,13 @@ import argparse
 import logging.config
 
 from app.config.database import create_tables
+from app.config.log import LOGGING_CONFIG
 from app.entity import Product  # noqa: F401
 from app.entity import ProductPrice  # noqa: F401
+from app.service.keyword_service import KeywordService
 from app.service.product_service import ProductService
 
-LOGGING_CONFIG = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "default": {
-            # "format": "%(asctime)s [%(levelname)-8s] %(name)-20s | %(funcName)s:%(lineno)d | %(message)s",
-            "format": "%(asctime)s [%(levelname)s] %(name)s:%(funcName)s:%(lineno)d - %(message)s",
-        },
-    },
-    "handlers": {
-        "stream": {
-            "class": "logging.StreamHandler",
-            "formatter": "default",
-            "level": "INFO",
-            "stream": "ext://sys.stdout",
-        },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "formatter": "default",
-            "level": "INFO",
-            "filename": "app.log",
-            "maxBytes": 1024 * 1024 * 10,  # 10MB
-            "backupCount": 5,
-            "encoding": "UTF-8",
-        },
-    },
-    "loggers": {
-        "": {
-            "level": "INFO",
-            "handlers": ["stream", "file"],
-            "propagate": False,
-        },
-        "httpx": {
-            "level": "WARNING",
-            "handlers": ["stream"],
-            "propagate": False,
-        },
-        "sqlalchemy.engine": {
-            "level": "INFO",
-            "handlers": ["stream", "file"],
-            "propagate": False,
-        },
-    },
-}
 logging.config.dictConfig(LOGGING_CONFIG)
-
 logger = logging.getLogger(__name__)
 
 
@@ -61,6 +18,7 @@ def main():
         "-p", "--product-name", type=str, help="Search for a product by name and show its price history."
     )
     parser.add_argument("-c", "--create-tables", action="store_true", help="Create database tables.")
+    parser.add_argument("-k", "--create-keyword", type=str, help="Create keywords.")
 
     args = parser.parse_args()
 
@@ -85,6 +43,12 @@ def main():
                 discount = "" if price.discount is None else f" (할인: {price.discount:,}%)"
                 logger.info(f"- {price.created_at.strftime('%Y-%m-%d %H:%M:%S')} | {price.price:,}원 {discount}")
             logger.info("-" * 40)
+
+    elif args.create_keyword:
+        logger.info(f"Creating keyword: {args.create_keyword}")
+        keyword_service = KeywordService()
+        keyword_service.create_keyword(args.create_keyword)
+        logger.info(f"Keyword '{args.create_keyword}' created successfully.")
 
     else:
         parser.print_help()
