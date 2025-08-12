@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel, field_validator, Field, ConfigDict
 
@@ -9,9 +8,9 @@ class ScrapedProductModel(BaseModel):
 
     name: str
     price: Decimal = Field(ge=0)
-    discount: Optional[int] = Field(default=None, ge=0)
-    channel_product_id: Optional[str] = Field(default=None)
-    url: Optional[str] = Field(default=None)
+    discount: int | None = Field(default=None, ge=0)
+    channel_product_id: str | None = Field(default=None)
+    url: str | None = Field(default=None)
 
     @field_validator("price", mode="before")
     @classmethod
@@ -38,13 +37,3 @@ class ScrapedProductModel(BaseModel):
             return int(float_val * 100)
         else:
             return int(float_val)
-
-    @field_validator("channel_product_id", mode="before")
-    @classmethod
-    def convert_channel_product_id(cls, value):
-        if isinstance(value, str):
-            return value.strip()
-        elif isinstance(value, int):
-            return str(value)
-        else:
-            raise ValueError("channel_product_id must be a string or an integer.")

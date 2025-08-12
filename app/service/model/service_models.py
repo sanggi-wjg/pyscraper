@@ -1,6 +1,6 @@
 import datetime
 import decimal
-from typing import Optional, List
+from typing import List
 
 from pydantic import BaseModel, ConfigDict
 
@@ -12,7 +12,7 @@ class ProductPriceModel(BaseModel):
 
     id: int
     price: decimal.Decimal
-    discount: Optional[decimal.Decimal]
+    discount: decimal.Decimal | None
     created_at: datetime.datetime
     product_id: int
 
@@ -22,9 +22,9 @@ class ProductModel(BaseModel):
 
     id: int
     channel: ChannelEnum
-    channel_product_id: Optional[str]
+    channel_product_id: str | None
     name: str
-    url: Optional[str]
+    url: str | None
     created_at: datetime.datetime
     prices: List[ProductPriceModel]
 
