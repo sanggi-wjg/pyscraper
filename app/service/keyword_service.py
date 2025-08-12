@@ -18,5 +18,5 @@ class KeywordService:
         )
 
     @transactional()
-    def get_all_keywords(self) -> List[KeywordModel]:
-        return [KeywordModel.model_validate(keyword) for keyword in self.keyword_repository.find_all()]
+    def get_available_keywords(self) -> List[KeywordModel]:
+        return [KeywordModel.model_validate(keyword) for keyword in self.keyword_repository.find_available_all()]

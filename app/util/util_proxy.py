@@ -38,7 +38,7 @@ def get_working_proxy() -> Optional[str]:
 
     for proxy in _CANDIDATE_PROXIES:
         if test_proxy_connection(proxy):
-            logger.info(f"✅ Using working proxy: {proxy} ✅")
+            logger.info(f"✅ working proxy: {proxy} ✅")
             return proxy
 
     logger.error("❌ No working proxy found. ❌")

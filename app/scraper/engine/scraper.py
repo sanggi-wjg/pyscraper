@@ -15,12 +15,7 @@ logger = logging.getLogger(__name__)
 
 class Scraper(ABC):
 
-    def __init__(
-        self,
-        proxy: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ):
-        self.proxy = proxy
+    def __init__(self, headers: Optional[Dict[str, str]] = None, proxy: Optional[str] = None):
         self.fake_headers = get_fake_headers()
         self.fake_headers.update(
             {
@@ -28,6 +23,7 @@ class Scraper(ABC):
                 "Accept-Language": "ko,en-US;q=0.9,en;q=0.8",
             }
         )
+        self.proxy = proxy
         if headers:
             self.fake_headers.update(headers)
         self.timeout = 10
@@ -35,7 +31,8 @@ class Scraper(ABC):
 
     def _request_http_get(self, url: str) -> Optional[httpx.Response]:
         try:
-            with httpx.Client(proxy=self.proxy, timeout=self.timeout) as client:
+            # with httpx.Client(proxy=self.proxy, timeout=self.timeout) as client:
+            with httpx.Client(timeout=self.timeout) as client:
                 response = client.get(url, headers=self.fake_headers)
                 response.raise_for_status()
                 return response
