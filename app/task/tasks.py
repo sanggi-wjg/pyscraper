@@ -1,4 +1,6 @@
 import logging
+import random
+import time
 
 from celery import shared_task
 
@@ -26,6 +28,7 @@ def scrape_products_task():
 
     for keyword in keywords:
         scrape_product_task_with_keyword.delay(keyword.id, keyword.word)
+        time.sleep(random.randint(1, 10))
 
     logger.info("[SCRAPE_PRODUCTS_TASK] 😎 Finished 😎")
 

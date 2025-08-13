@@ -37,7 +37,8 @@ class PetFriendsScraper(BeautifulSoupScraper):
             price = item.select_one("em.c-lhSsmZ")
             discount = item.select_one("strong.c-esKGUC")
             url = item.select_one("a").get("href")
-            if not name or not price:
+
+            if not all([name, price]):
                 logger.info("Missing required fields in the scraped item.")
                 continue
 
