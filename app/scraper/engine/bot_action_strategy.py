@@ -75,7 +75,7 @@ class HumanScrollStrategy(SeleniumBotActionStrategy):
         for _ in range(scrolls):
             scroll_amount = self.behavior.scroll_amount()
             if direction == "up":
-                scroll_amount = -scrolls
+                scroll_amount = -scroll_amount
 
             driver.execute_script(f"window.scrollBy(0, {scroll_amount});")
             self.behavior.random_delay(0.5, 2.0)

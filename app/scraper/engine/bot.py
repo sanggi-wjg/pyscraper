@@ -1,7 +1,8 @@
 import logging
 import random
 import subprocess
-from typing import Tuple, Dict, List, Union, Any
+import time
+from typing import List
 
 from selenium import webdriver
 from selenium.common import TimeoutException
@@ -56,18 +57,23 @@ class HumanlikeSeleniumBot:
 
     def __init__(
         self,
-        geckodriver_path: str = "../driver/geckodriver",
+        driver_path: str = "../driver/geckodriver",
+        driver_log_level: str = "info",
+        use_tor_proxy: bool = False,
         headless: bool = False,
         speed_factor: float = 1.0,
         profile_path: str | None = None,
-        proxy: Dict[str, str] | None = None,
     ):
-
-        self.geckodriver_path = geckodriver_path
+        """
+        use_tor_proxy True 경우, tor 설치 및 실행 후 동작해야 합니다
+        - Mac: `brew install tor`
+        """
+        self.driver_path = driver_path
+        self.driver_log_level = driver_log_level
+        self.use_tor_proxy = use_tor_proxy
         self.headless = headless
-        self.behavior = HumanBehavior(speed_factor)
         self.profile_path = profile_path
-        self.proxy = proxy
+        self.behavior = HumanBehavior(speed_factor)
         self.driver: webdriver.Firefox | None = None
 
         self.click_strategy = HumanClickStrategy(self.behavior)
@@ -77,9 +83,58 @@ class HumanlikeSeleniumBot:
 
         self.browser_config = BrowserConfig()
 
+    def start(self) -> "HumanlikeSeleniumBot":
+        if self.driver:
+            return self
+
+        try:
+            options = self._create_options()
+            service = Service(
+                self.driver_path,
+                log_output=subprocess.STDOUT,
+                service_args=["--log", self.driver_log_level],
+            )
+
+            width, height = self.browser_config.screen_size
+            self.driver = webdriver.Firefox(service=service, options=options)
+            self.driver.set_window_size(width, height)
+            self._hide_automation_properties()
+            return self
+
+        except Exception as e:
+            raise Exception(f"브라우저 시작 실패: {e}")
+
+    def _install_addons(self) -> "HumanlikeSeleniumBot":
+        raise NotImplementedError()
+        self.driver.install_addon("../driver/addons/vpn_master-0.1.4-an+fx.xpi", temporary=False)
+        time.sleep(3)
+
+        self.driver.get("about:addons")
+        addon_card = WebDriverWait(self.driver, 10).until(
+            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "[data-addon-id*='vpn']"))
+        )
+        enable_button = addon_card.find_element(By.CSS_SELECTOR, "button[data-l10n-id='enable-addon-button']")
+        if enable_button.is_displayed():
+            enable_button.click()
+            print("VPN 애드온이 활성화되었습니다.")
+
+        return self
+
     def _create_options(self) -> Options:
         options = Options()
         options.set_preference("general.useragent.override", self.browser_config.user_agent)
+        options.set_preference("intl.regional_prefs.use_os_locales", True)
+        options.set_preference("app.update.enabled", False)
+        options.set_preference("browser.cache.disk.enable", False)
+        options.set_preference("browser.cache.memory.enable", False)
+        options.set_preference("browser.cache.offline.enable", False)
+        # 브라우저 히스토리 시뮬레이션
+        options.set_preference("places.history.enabled", True)
+        options.set_preference("browser.formfill.enable", True)
+        options.set_preference("signon.rememberSignons", True)
+        # 쿠키 설정
+        options.set_preference("network.cookie.cookieBehavior", 1)
+        options.set_preference("network.cookie.lifetimePolicy", 0)
         # 자동화 탐지 방지
         options.set_preference("dom.webdriver.enabled", False)
         options.set_preference("useAutomationExtension", False)
@@ -96,6 +151,21 @@ class HumanlikeSeleniumBot:
         options.set_preference("privacy.trackingprotection.enabled", True)
         options.set_preference("media.peerconnection.enabled", False)
         options.set_preference("geo.enabled", False)
+        # WebGL 설정
+        options.set_preference("webgl.disabled", True)
+        options.set_preference("webgl.enable-webgl2", False)
+
+        # tor proxy
+        if self.use_tor_proxy:
+            options.set_preference("network.proxy.type", 1)
+            options.set_preference("network.proxy.socks", "127.0.0.1")
+            options.set_preference("network.proxy.socks_port", 9050)
+            options.set_preference("network.proxy.socks_version", 5)
+            options.set_preference("network.proxy.socks_remote_dns", True)
+            options.set_preference("network.proxy.http", "")
+            options.set_preference("network.proxy.http_port", 0)
+            options.set_preference("network.proxy.ssl", "")
+            options.set_preference("network.proxy.ssl_port", 0)
 
         if self.headless:
             options.add_argument("--headless")
@@ -103,46 +173,14 @@ class HumanlikeSeleniumBot:
         if self.profile_path:
             options.set_preference("profile", self.profile_path)
 
-        if self.proxy:
-            self._setup_proxy(options)
-
         return options
-
-    def _setup_proxy(self, options: Options) -> None:
-        if self.proxy.get("http"):
-            proxy_parts = self.proxy["http"].split(":")
-            options.set_preference("network.proxy.type", 1)
-            options.set_preference("network.proxy.http", proxy_parts[0])
-            options.set_preference("network.proxy.http_port", int(proxy_parts[1]))
-            options.set_preference("network.proxy.ssl", proxy_parts[0])
-            options.set_preference("network.proxy.ssl_port", int(proxy_parts[1]))
-
-    def start(self) -> "HumanlikeSeleniumBot":
-        if self.driver:
-            return self
-
-        try:
-            options = self._create_options()
-            service = Service(
-                self.geckodriver_path,
-                log_output=subprocess.STDOUT,
-                service_args=["--log", "info"],
-            )
-
-            width, height = self.browser_config.screen_size
-            self.driver = webdriver.Firefox(service=service, options=options)
-            self.driver.set_window_size(width, height)
-            self._hide_automation_properties()
-            return self
-
-        except Exception as e:
-            raise Exception(f"브라우저 시작 실패: {e}")
 
     def _hide_automation_properties(self) -> None:
         # 자동화 속성 숨기기
         script = """
         Object.defineProperty(navigator, 'webdriver', {
             get: () => undefined,
+            configurable: true
         });
         
         delete navigator.__proto__.webdriver;
@@ -152,7 +190,7 @@ class HumanlikeSeleniumBot:
         });
         
         Object.defineProperty(navigator, 'languages', {
-            get: () => ['ko-KR', 'ko', 'en-US', 'en'],
+            get: () => ['ko-KR', 'ko'],
         });
         
         // WebGL 설정
@@ -166,6 +204,41 @@ class HumanlikeSeleniumBot:
             }
             return getParameter(parameter);
         };
+        
+        // 7. 타이밍 API 조작
+        const originalPerformanceNow = performance.now;
+        performance.now = function() {
+            return originalPerformanceNow.call(performance) + Math.random() * 0.1;
+        };
+        
+        // 8. Canvas fingerprinting 방지
+        const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+        HTMLCanvasElement.prototype.toDataURL = function() {
+            const context = this.getContext('2d');
+            context.fillStyle = `rgb(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)})`;
+            context.fillRect(0, 0, 1, 1);
+            return originalToDataURL.apply(this, arguments);
+        };
+        
+        // 9. WebRTC 정보 숨기기
+        if (window.RTCPeerConnection) {
+            const originalRTC = window.RTCPeerConnection;
+            window.RTCPeerConnection = function(...args) {
+                const pc = new originalRTC(...args);
+                const originalCreateDataChannel = pc.createDataChannel;
+                pc.createDataChannel = function() {
+                    return originalCreateDataChannel.apply(pc, arguments);
+                };
+                return pc;
+            };
+        }
+        
+        // 10. 마우스 및 키보드 이벤트 개선
+        const addRandomNoise = (event) => {
+            if (event.isTrusted === undefined) {
+                Object.defineProperty(event, 'isTrusted', { value: true, writable: false });
+            }
+        };
         """
         self.driver.execute_script(script)
 
@@ -175,6 +248,10 @@ class HumanlikeSeleniumBot:
 
         self.driver.get(url)
         self.behavior.random_delay(1, 5)
+        return self
+
+    def check_ip(self) -> "HumanlikeSeleniumBot":
+        self.get("https://httpbin.org/ip")
         return self
 
     def find_element(self, by: str, value: str, timeout: int = 10) -> WebElement | None:
@@ -198,32 +275,26 @@ class HumanlikeSeleniumBot:
             return []
 
     def human_click(self, element: WebElement) -> "HumanlikeSeleniumBot":
-        if isinstance(element, tuple):
-            element = self.find_element(element[0], element[1])
-
         self.click_strategy.execute(self.driver, element)
         self.behavior.random_delay(0.5, 2.0)
         return self
 
     def human_type(
         self,
-        element: Union[WebElement, Tuple[By, str]],
+        element: WebElement,
         text: str,
         clear: bool = True,
     ) -> "HumanlikeSeleniumBot":
-        if isinstance(element, tuple):
-            element = self.find_element(element[0], element[1])
-
         self.type_strategy.execute(self.driver, element, text=text, clear=clear)
         self.behavior.random_delay(0.3, 1.0)
         return self
 
-    def human_scroll(self, scrolls: int = 5, direction: str = "down") -> "HumanlikeSeleniumBot":
-        self.scroll_strategy.execute(self.driver, element=None, scrolls=scrolls, direction=direction)
+    def human_scroll(self, direction: str = "down") -> "HumanlikeSeleniumBot":
+        self.scroll_strategy.execute(self.driver, element=None, scrolls=random.randint(1, 5), direction=direction)
         return self
 
-    def human_mouse_movement(self, movements: int = 5) -> "HumanlikeSeleniumBot":
-        self.mouse_move_strategy.execute(self.driver, element=None, movements=movements)
+    def human_mouse_movement(self) -> "HumanlikeSeleniumBot":
+        self.mouse_move_strategy.execute(self.driver, element=None, movements=random.randint(1, 5))
         return self
 
     def wait_and_click(
@@ -233,7 +304,8 @@ class HumanlikeSeleniumBot:
         timeout: int = 10,
     ) -> "HumanlikeSeleniumBot":
         element = self.find_element(by, value, timeout)
-        return self.human_click(element)
+        self.human_click(element)
+        return self
 
     def wait_and_type(
         self,
@@ -244,14 +316,16 @@ class HumanlikeSeleniumBot:
         clear: bool = True,
     ) -> "HumanlikeSeleniumBot":
         element = self.find_element(by, value, timeout)
-        return self.human_type(element, text, clear)
+        self.human_type(element, text, clear)
+        return self
 
     def take_screenshot(self, filename: str) -> "HumanlikeSeleniumBot":
         self.driver.save_screenshot(filename)
         return self
 
-    def execute_script(self, script: str, *args) -> Any:
-        return self.driver.execute_script(script, *args)
+    def execute_script(self, script: str, *args) -> "HumanlikeSeleniumBot":
+        self.driver.execute_script(script, *args)
+        return self
 
     def get_page_source(self) -> str:
         return self.driver.page_source
