@@ -3,7 +3,7 @@ import logging
 import random
 import subprocess
 import time
-from typing import List
+from typing import List, Union
 
 from selenium import webdriver
 from selenium.common import TimeoutException
@@ -14,6 +14,7 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
+from seleniumbase.core import sb_driver
 
 from app.scraper.engine.bot_action_strategy import (
     HumanClickStrategy,
@@ -76,7 +77,7 @@ class HumanlikeSeleniumBot:
         self.headless = headless
         self.profile_path = profile_path
         self.behavior = HumanBehavior(speed_factor)
-        self.driver: webdriver.Firefox | None = None
+        self.driver: Union[webdriver.Firefox, sb_driver.DriverMethods, None] = None
 
         self.click_strategy = HumanClickStrategy(self.behavior)
         self.type_strategy = HumanTypeStrategy(self.behavior)

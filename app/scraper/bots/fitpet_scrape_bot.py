@@ -1,3 +1,5 @@
+import time
+
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 
@@ -33,3 +35,8 @@ class FitpetMallScrapeBot(HumanlikeSeleniumBot):
         if elements and index < len(elements):
             self.human_click(elements[index])
         return self
+
+
+with HumanlikeSeleniumBot(speed_factor=1.5) as browser:
+    browser.get("https://fitpetmall.com/mall").human_scroll("down")
+    time.sleep(100)
