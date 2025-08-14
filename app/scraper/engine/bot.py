@@ -1,3 +1,4 @@
+import datetime
 import logging
 import random
 import subprocess
@@ -6,6 +7,7 @@ from typing import List
 
 from selenium import webdriver
 from selenium.common import TimeoutException
+from selenium.webdriver import FirefoxProfile
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
@@ -25,7 +27,7 @@ from app.util.util_header import get_fake_firefox_user_agent
 logger = logging.getLogger(__name__)
 
 
-class BrowserConfig:
+class BotBrowserConfig:
 
     def __init__(self):
         self.user_agent = get_fake_firefox_user_agent()
@@ -81,7 +83,7 @@ class HumanlikeSeleniumBot:
         self.scroll_strategy = HumanScrollStrategy(self.behavior)
         self.mouse_move_strategy = HumanMouseMoveStrategy(self.behavior)
 
-        self.browser_config = BrowserConfig()
+        self.browser_config = BotBrowserConfig()
 
     def start(self) -> "HumanlikeSeleniumBot":
         if self.driver:
@@ -104,40 +106,45 @@ class HumanlikeSeleniumBot:
         except Exception as e:
             raise Exception(f"브라우저 시작 실패: {e}")
 
-    def _install_addons(self) -> "HumanlikeSeleniumBot":
-        raise NotImplementedError()
-        self.driver.install_addon("../driver/addons/vpn_master-0.1.4-an+fx.xpi", temporary=False)
-        time.sleep(3)
-
-        self.driver.get("about:addons")
-        addon_card = WebDriverWait(self.driver, 10).until(
-            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "[data-addon-id*='vpn']"))
-        )
-        enable_button = addon_card.find_element(By.CSS_SELECTOR, "button[data-l10n-id='enable-addon-button']")
-        if enable_button.is_displayed():
-            enable_button.click()
-            print("VPN 애드온이 활성화되었습니다.")
-
-        return self
-
     def _create_options(self) -> Options:
         options = Options()
-        options.set_preference("general.useragent.override", self.browser_config.user_agent)
+        options.binary_location = "/Applications/Firefox.app/Contents/MacOS/firefox"
+        options.profile = FirefoxProfile(
+            "/Users/raynor/Library/Application Support/Firefox/Profiles/udkgggw8.default-release-1732677968237"
+        )
+
+        options.set_preference(
+            "general.useragent.override",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+        )
+        options.set_preference(
+            "network.http.accept.default",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        )
+        options.set_preference("network.http.accept-encoding.secure", "gzip, deflate, br")
+
         options.set_preference("intl.regional_prefs.use_os_locales", True)
         options.set_preference("app.update.enabled", False)
-        options.set_preference("browser.cache.disk.enable", False)
-        options.set_preference("browser.cache.memory.enable", False)
+        # 캐시 설정
+        options.set_preference("browser.cache.disk.enable", True)
+        options.set_preference("browser.cache.memory.enable", True)
         options.set_preference("browser.cache.offline.enable", False)
+        options.set_preference("browser.cache.disk.capacity", 1024000)  # 1GB로 제한
         # 브라우저 히스토리 시뮬레이션
         options.set_preference("places.history.enabled", True)
         options.set_preference("browser.formfill.enable", True)
         options.set_preference("signon.rememberSignons", True)
         # 쿠키 설정
-        options.set_preference("network.cookie.cookieBehavior", 1)
+        options.set_preference("network.cookie.cookieBehavior", 0)
         options.set_preference("network.cookie.lifetimePolicy", 0)
         # 자동화 탐지 방지
         options.set_preference("dom.webdriver.enabled", False)
         options.set_preference("useAutomationExtension", False)
+        options.set_preference("devtools.jsonview.enabled", False)
+        options.set_preference("marionette.enabled", False)
+        options.set_preference("fission.autostart", False)
+        options.set_preference("focusmanager.testmode", False)
+        options.set_preference("general.platform.override", "Win32")  # platform 위장
         # 브라우저 설정
         options.set_preference("browser.startup.homepage", "about:blank")
         options.set_preference("startup.homepage_welcome_url", "about:blank")
@@ -149,11 +156,11 @@ class HumanlikeSeleniumBot:
         options.set_preference("media.navigator.enabled", False)
         # 개인정보 보호
         options.set_preference("privacy.trackingprotection.enabled", True)
-        options.set_preference("media.peerconnection.enabled", False)
-        options.set_preference("geo.enabled", False)
+        options.set_preference("media.peerconnection.enabled", True)
+        options.set_preference("geo.enabled", True)
         # WebGL 설정
-        options.set_preference("webgl.disabled", True)
-        options.set_preference("webgl.enable-webgl2", False)
+        options.set_preference("webgl.disabled", False)
+        options.set_preference("webgl.enable-webgl2", True)
 
         # tor proxy
         if self.use_tor_proxy:
@@ -176,71 +183,37 @@ class HumanlikeSeleniumBot:
         return options
 
     def _hide_automation_properties(self) -> None:
-        # 자동화 속성 숨기기
         script = """
-        Object.defineProperty(navigator, 'webdriver', {
-            get: () => undefined,
-            configurable: true
-        });
-        
-        delete navigator.__proto__.webdriver;
-        
-        Object.defineProperty(navigator, 'plugins', {
-            get: () => [1, 2, 3, 4, 5],
-        });
-        
-        Object.defineProperty(navigator, 'languages', {
-            get: () => ['ko-KR', 'ko'],
-        });
-        
-        // WebGL 설정
-        const getParameter = WebGLRenderingContext.getParameter;
-        WebGLRenderingContext.prototype.getParameter = function(parameter) {
-            if (parameter === 37445) {
-                return 'Intel Inc.';
-            }
-            if (parameter === 37446) {
-                return 'Intel Iris OpenGL Engine';
-            }
-            return getParameter(parameter);
-        };
-        
-        // 7. 타이밍 API 조작
-        const originalPerformanceNow = performance.now;
-        performance.now = function() {
-            return originalPerformanceNow.call(performance) + Math.random() * 0.1;
-        };
-        
-        // 8. Canvas fingerprinting 방지
-        const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
-        HTMLCanvasElement.prototype.toDataURL = function() {
-            const context = this.getContext('2d');
-            context.fillStyle = `rgb(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)})`;
-            context.fillRect(0, 0, 1, 1);
-            return originalToDataURL.apply(this, arguments);
-        };
-        
-        // 9. WebRTC 정보 숨기기
-        if (window.RTCPeerConnection) {
-            const originalRTC = window.RTCPeerConnection;
-            window.RTCPeerConnection = function(...args) {
-                const pc = new originalRTC(...args);
-                const originalCreateDataChannel = pc.createDataChannel;
-                pc.createDataChannel = function() {
-                    return originalCreateDataChannel.apply(pc, arguments);
-                };
-                return pc;
-            };
-        }
-        
-        // 10. 마우스 및 키보드 이벤트 개선
-        const addRandomNoise = (event) => {
-            if (event.isTrusted === undefined) {
-                Object.defineProperty(event, 'isTrusted', { value: true, writable: false });
-            }
-        };
+        Object.defineProperty(navigator, 'webdriver', {get: () => false});
+        Object.defineProperty(navigator, 'automation', {get: () => false});
         """
         self.driver.execute_script(script)
+        self.driver.execute_script(
+            """
+            let script = document.createElement('script');
+            script.innerHTML = `
+                Object.defineProperty(navigator, 'webdriver', { get: () => false });
+                Object.defineProperty(navigator, 'automation', { get: () => false });
+            `;
+            document.documentElement.prepend(script);
+        """
+        )
+
+    def _install_addons(self) -> "HumanlikeSeleniumBot":
+        raise NotImplementedError()
+        self.driver.install_addon("../driver/addons/vpn_master-0.1.4-an+fx.xpi", temporary=False)
+        time.sleep(3)
+
+        self.driver.get("about:addons")
+        addon_card = WebDriverWait(self.driver, 10).until(
+            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "[data-addon-id*='vpn']"))
+        )
+        enable_button = addon_card.find_element(By.CSS_SELECTOR, "button[data-l10n-id='enable-addon-button']")
+        if enable_button.is_displayed():
+            enable_button.click()
+            print("VPN 애드온이 활성화되었습니다.")
+
+        return self
 
     def get(self, url: str) -> "HumanlikeSeleniumBot":
         if not self.driver:
@@ -250,8 +223,28 @@ class HumanlikeSeleniumBot:
         self.behavior.random_delay(1, 5)
         return self
 
-    def check_ip(self) -> "HumanlikeSeleniumBot":
+    def debug_antibot(self):
+        self.driver.get("https://bot.sannysoft.com/")
+        self.take_screenshot(f"antibot-{datetime.datetime.now()}.png")
+        return self
+
+    def debug_ip(self) -> "HumanlikeSeleniumBot":
         self.get("https://httpbin.org/ip")
+        return self
+
+    def debug_detection(self) -> "HumanlikeSeleniumBot":
+        detection_script = """
+        return {
+            webdriver: navigator.webdriver,
+            userAgent: navigator.userAgent,
+            plugins: navigator.plugins.length,
+            languages: navigator.languages,
+            platform: navigator.platform,
+            automation: window.navigator.webdriver
+        };
+        """
+        result = self.driver.execute_script(detection_script)
+        print("Detection Status:", result)
         return self
 
     def find_element(self, by: str, value: str, timeout: int = 10) -> WebElement | None:

@@ -1,3 +1,4 @@
+import time
 from urllib.parse import urlencode
 
 from selenium.webdriver import Keys
@@ -46,8 +47,9 @@ class CoupangScrapeBot(HumanlikeSeleniumBot):
         return self
 
 
-# with CoupangScrapeBot(driver_log_level="debug") as bot:
-#     bot.search_2("로얄캐닌 독 릴렉스 케어 파우치")
-#     time.sleep(20)
+with CoupangScrapeBot(driver_log_level="info", driver_path="/Applications/Firefox.app/Contents/MacOS/firefox") as bot:
+    # bot.search_2("로얄캐닌 독 릴렉스 케어 파우치")
+    bot.debug_detection().roam_home().debug_detection()
+    time.sleep(20)
 
 # print(urlencode({"q": "로얄캐닌 독 릴렉스 케어 파우치"}))
