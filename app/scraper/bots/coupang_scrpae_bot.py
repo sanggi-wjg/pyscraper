@@ -30,6 +30,7 @@ class CoupangScrapeBot(HumanlikeChromeSeleniumBot):
         search_box.send_keys(Keys.ENTER)
         return self
 
+
 # with CoupangScrapeBot(driver_log_level="info", driver_path="/Applications/Firefox.app/Contents/MacOS/firefox") as bot:
 #     bot.debug_detection().roam_home().debug_detection().search("로얄캐닌 독 릴렉스 케어 파우치")
 #     time.sleep(20)
