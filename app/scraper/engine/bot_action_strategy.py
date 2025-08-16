@@ -44,7 +44,7 @@ class HumanTypeStrategy(SeleniumBotActionStrategy):
         text = kwargs.get("text")
         clear = kwargs.get("clear", True)
 
-        if not text:
+        if not text or not element:
             return
 
         if clear:
@@ -69,7 +69,7 @@ class HumanScrollStrategy(SeleniumBotActionStrategy):
         scrolls = kwargs.get("scrolls", 0)
         direction = kwargs.get("direction", "down")
 
-        if scrolls <= 0:
+        if scrolls <= 0 or not element:
             return
 
         for _ in range(scrolls):
@@ -86,6 +86,9 @@ class HumanMouseMoveStrategy(SeleniumBotActionStrategy):
     def execute(self, driver: webdriver.Firefox, element: WebElement | None, **kwargs):
         margin = 50
         movements = kwargs.get("movements", 1)
+
+        if not element:
+            return
 
         actions = ActionChains(driver)
         viewport_width = driver.execute_script("return window.innerWidth;")

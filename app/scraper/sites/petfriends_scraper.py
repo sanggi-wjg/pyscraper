@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from app.enums.channel_enum import ChannelEnum
 from app.scraper.engine.scraper import BeautifulSoupScraper
 from app.scraper.model.scraper_models import ScrapedProductModel
+from app.util.util_scrape import safe_extract_text, safe_extract_attr
 
 logger = logging.getLogger(__name__)
 
@@ -31,23 +32,28 @@ class PetFriendsScraper(BeautifulSoupScraper):
         return f"{self.endpoint}?{query_string}"
 
     def _extract(self, parser: BeautifulSoup, **kwargs) -> List[ScrapedProductModel]:
+        items = parser.select("ul.c-hdwPLF > li")
+        if not items:
+            logger.info("No items found in the HTML.")
+            return []
+
         result = []
-        for item in parser.select("ul.c-hdwPLF > li"):
-            name = item.select_one("h1.c-lhSsmZ")
-            price = item.select_one("em.c-lhSsmZ")
-            discount = item.select_one("strong.c-esKGUC")
-            url = item.select_one("a").get("href")
+
+        for item in items:
+            name = safe_extract_text(item, "h1.c-lhSsmZ")
+            price = safe_extract_text(item, "em.c-lhSsmZ")
+            discount = safe_extract_text(item, "strong.c-esKGUC")
+            url = safe_extract_attr(item, "a", "href")
 
             if not all([name, price]):
-                logger.info("Missing required fields in the scraped item.")
                 continue
 
             result.append(
                 ScrapedProductModel(
                     channel_product_id=None,
-                    name=name.text,
-                    price=price.text,
-                    discount=None if not discount else discount.text,
+                    name=name,
+                    price=price,
+                    discount=discount,
                     url="https://m.pet-friends.co.kr" + url,
                 )
             )

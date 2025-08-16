@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from app.enums.channel_enum import ChannelEnum
 from app.scraper.engine.scraper import BeautifulSoupScraper
 from app.scraper.model.scraper_models import ScrapedProductModel
+from app.util.util_scrape import safe_extract_text, safe_extract_attr
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +34,30 @@ class AboutPetScraper(BeautifulSoupScraper):
         return f"{self.endpoint}?{query_string}"
 
     def _extract(self, parser: BeautifulSoup, **kwargs) -> List[ScrapedProductModel]:
-        return [
-            ScrapedProductModel(
-                channel_product_id=item.select_one("a")["data-content"],
-                name=item.select_one(".tit").text,
-                price=item.select_one(".price em").text,
-                discount=None if not item.select_one(".disc") else item.select_one(".disc").text,
-                url="https://aboutpet.co.kr/" + item.select_one("a")["href"],
+        items = parser.select(".gd-item")
+        if not items:
+            logger.info("No items found in the HTML.")
+            return []
+
+        result = []
+
+        for item in items:
+            name = safe_extract_text(item, ".tit")
+            price = safe_extract_text(item, ".price em")
+            discount = safe_extract_text(item, ".disc")
+            url = safe_extract_attr(item, "a", "href")
+            channel_product_id = safe_extract_attr(item, "a", "data-content")
+
+            if not all([name, price]):
+                continue
+
+            result.append(
+                ScrapedProductModel(
+                    channel_product_id=channel_product_id,
+                    name=name,
+                    price=price,
+                    discount=discount,
+                    url="https://aboutpet.co.kr/" + url,
+                )
             )
-            for item in parser.select(".gd-item")
-        ]
+        return result

@@ -38,7 +38,7 @@ class FitpetScraper(HttpScraper):
         products = resp.get("products", [])
         return [
             ScrapedProductModel(
-                channel_product_id=product["id"],
+                channel_product_id=str(product["id"]),
                 name=product["name"],
                 price=product["price"],
                 discount=product["discountRate"] if product.get("discountRate") else None,
