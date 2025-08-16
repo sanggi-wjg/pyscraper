@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-sqlalchemy = "^2.0.31"
+sqlalchemy = "^2.0.43"
 pandas = "^2.2.2"
 beautifulsoup4 = "^4.12.3"
 httpx = "^0.28.1"
@@ -19,6 +19,8 @@ pydantic = "^2.11.7"
 celery = {extras = ["redis"], version = "^5.5.3"}
 celery-types = "^0.23.0"
 fastapi = {extras = ["standard"], version = "^0.116.1"}
+selenium = "^4.35.0"
+webdriver-manager = "^4.0.2"
 
 
 [build-system]

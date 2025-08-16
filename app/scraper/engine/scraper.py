@@ -8,31 +8,37 @@ from bs4 import BeautifulSoup
 from app.enums.channel_enum import ChannelEnum
 from app.scraper.model.scrape_result import ScrapeResult
 from app.scraper.model.scraper_models import ScrapedProductModel
-from app.util.util_user_agent import get_fake_headers
+from app.util.util_header import get_fake_headers, get_fake_accept_language
 
 logger = logging.getLogger(__name__)
 
 
 class Scraper(ABC):
 
-    def __init__(self, headers: Optional[Dict[str, str]] = None, proxy: Optional[str] = None):
+    def __init__(
+        self,
+        timeout: int = 10,
+        headers: Optional[Dict[str, str]] = None,
+        proxy: Optional[str] = None,
+    ):
         self.fake_headers = get_fake_headers()
         self.fake_headers.update(
             {
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "Accept-Language": "ko,en-US;q=0.9,en;q=0.8",
+                "Accept-Language": get_fake_accept_language(),
+                "Accept-Encoding": "gzip, deflate, br",
+                "Connection": "keep-alive",
             }
         )
         self.proxy = proxy
         if headers:
             self.fake_headers.update(headers)
-        self.timeout = 10
+        self.timeout = timeout
         self.channel = None
 
     def _request_http_get(self, url: str) -> Optional[httpx.Response]:
         try:
-            # with httpx.Client(proxy=self.proxy, timeout=self.timeout) as client:
-            with httpx.Client(timeout=self.timeout) as client:
+            with httpx.Client(proxy=self.proxy, timeout=self.timeout) as client:
                 response = client.get(url, headers=self.fake_headers)
                 response.raise_for_status()
                 return response
