@@ -224,9 +224,10 @@ class HumanlikeSeleniumBot:
         self.behavior.random_delay(1, 5)
         return self
 
-    def debug_antibot(self):
+    def debug_antibot(self, take_screenshot: bool = True) -> "HumanlikeSeleniumBot":
         self.driver.get("https://bot.sannysoft.com/")
-        self.take_screenshot(f"antibot-{datetime.datetime.now()}.png")
+        if take_screenshot:
+            self.take_screenshot(f"antibot-{datetime.datetime.now()}.png")
         return self
 
     def debug_ip(self) -> "HumanlikeSeleniumBot":
@@ -245,7 +246,7 @@ class HumanlikeSeleniumBot:
         };
         """
         result = self.driver.execute_script(detection_script)
-        print("Detection Status:", result)
+        logger.info(result)
         return self
 
     def find_element(self, by: str, value: str, timeout: int = 10) -> WebElement | None:

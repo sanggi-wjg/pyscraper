@@ -18,7 +18,13 @@ app.conf.timezone = "UTC"
 app.conf.beat_schedule = {
     "scrape_products_task": {
         "task": "app.task.tasks.scrape_products_task",
-        "schedule": crontab(minute="*/30"),
+        # "schedule": crontab(minute="*/30"),  # every 30 minutes
+        "schedule": crontab(minute="*/5"),
+        "args": (),
+    },
+    "debug_chrome_bot": {
+        "task": "app.task.tasks.debug_chrome_bot",
+        "schedule": crontab(minute=0, hour="*/6"),
         "args": (),
     },
 }
