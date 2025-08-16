@@ -26,5 +26,8 @@ class CoupangScrapeBot(HumanlikeChromeSeleniumBot):
 
         self.wait_and_type(By.CLASS_NAME, "headerSearchKeyword", query)
         search_box = self.find_element(By.CLASS_NAME, "headerSearchKeyword")
+        if not search_box:
+            return self
+
         search_box.send_keys(Keys.ENTER)
         return self
