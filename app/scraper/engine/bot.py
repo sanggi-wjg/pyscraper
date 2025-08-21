@@ -21,8 +21,9 @@ from app.scraper.engine.bot_action_strategy import (
     HumanTypeStrategy,
     HumanScrollStrategy,
     HumanMouseMoveStrategy,
+    SeleniumBotActionStrategy,
 )
-from app.scraper.engine.bot_behavior import HumanBehavior
+from app.scraper.engine.bot_behavior import HumanBehavior, SeleniumBotBehavior
 from app.util.util_header import get_fake_firefox_user_agent
 
 logger = logging.getLogger(__name__)
@@ -76,13 +77,13 @@ class HumanlikeSeleniumBot:
         self.use_tor_proxy = use_tor_proxy
         self.headless = headless
         self.profile_path = profile_path
-        self.behavior = HumanBehavior(speed_factor)
+        self.behavior: SeleniumBotBehavior = HumanBehavior(speed_factor)
         self.driver: Union[webdriver.Firefox, sb_driver.DriverMethods, None] = None
 
-        self.click_strategy = HumanClickStrategy(self.behavior)
-        self.type_strategy = HumanTypeStrategy(self.behavior)
-        self.scroll_strategy = HumanScrollStrategy(self.behavior)
-        self.mouse_move_strategy = HumanMouseMoveStrategy(self.behavior)
+        self.click_strategy: SeleniumBotActionStrategy = HumanClickStrategy(self.behavior)
+        self.type_strategy: SeleniumBotActionStrategy = HumanTypeStrategy(self.behavior)
+        self.scroll_strategy: SeleniumBotActionStrategy = HumanScrollStrategy(self.behavior)
+        self.mouse_move_strategy: SeleniumBotActionStrategy = HumanMouseMoveStrategy(self.behavior)
 
         self.browser_config = BotBrowserConfig()
 

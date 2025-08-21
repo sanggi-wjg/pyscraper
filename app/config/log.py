@@ -19,8 +19,8 @@ LOGGING_CONFIG = {
             "formatter": "default",
             "level": "INFO",
             "filename": "app.log",
-            "maxBytes": 1024 * 1024 * 10,  # 10MB
-            "backupCount": 5,
+            "maxBytes": 1024 * 1024,  # 1MB
+            "backupCount": 100,
             "encoding": "UTF-8",
         },
     },

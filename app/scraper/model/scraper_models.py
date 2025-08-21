@@ -1,6 +1,9 @@
+import logging
 from decimal import Decimal
 
 from pydantic import BaseModel, field_validator, Field, ConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 class ScrapedProductModel(BaseModel):
@@ -16,12 +19,13 @@ class ScrapedProductModel(BaseModel):
     @classmethod
     def convert_price(cls, value):
         if isinstance(value, str):
-            value = value.replace("₩", "").replace(",", "").strip()
+            value = value.replace("₩", "").replace(",", "").replace("원", "").strip()
 
         try:
             return Decimal(value)
         except (ValueError, TypeError):
-            raise ValueError("price must be a valid number.")
+            logger.warning(f"Invalid price format. Using default value. Please check your input: {value}")
+            return Decimal(0)
 
     @field_validator("discount", mode="before")
     @classmethod
