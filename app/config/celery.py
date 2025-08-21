@@ -15,6 +15,12 @@ app = Celery(
 )
 app.autodiscover_tasks(packages=["app.task"])
 app.conf.timezone = "UTC"
+
+app.conf.ONCE = {
+    "backend": "celery_once.backends.Redis",
+    "settings": {"url": "redis://localhost:6379/1", "default_timeout": 60 * 60},  # 1시간
+}
+
 app.conf.beat_schedule = {
     "scrape_products_task": {
         "task": "app.task.tasks.scrape_products_task",

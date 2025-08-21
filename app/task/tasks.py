@@ -1,10 +1,14 @@
+from __future__ import absolute_import
+
 import logging
 import random
 import time
 from typing import List
 
 from celery import shared_task
+from celery_once import QueueOnce
 
+from app.config.celery import app
 from app.scraper.bots.coupang_scrpae_bot import CoupangScrapeBot
 from app.scraper.engine.chrome_bot import HumanlikeChromeSeleniumBot
 from app.scraper.sites.aboutpet_scraper import AboutPetScraper
@@ -17,7 +21,7 @@ from app.service.product_service import ProductService
 logger = logging.getLogger(__name__)
 
 
-@shared_task
+@app.task(base=QueueOnce, once={"graceful": True})
 def scrape_products_task():
     logger.info("[SCRAPE_PRODUCTS_TASK] 🚀 Start 🚀")
     # proxy = get_working_proxy()
@@ -48,7 +52,7 @@ def scrape_product_by_keyword_task(keyword_id: int, keyword_word: str):
     logger.info(f"[SCRAPE_PRODUCT_TASK_WITH_KEYWORD] Finished with {keyword_word}")
 
 
-@shared_task
+@app.task(base=QueueOnce, once={"graceful": True})
 def scrape_products_task_by_bot():
     # if random.randint(0, 1) % 2 == 0:
     #     return
@@ -72,7 +76,7 @@ def scrape_products_task_by_bot():
     logger.info("[SCRAPE_PRODUCTS_TASK_BY_BOT] 😎 Finished 😎")
 
 
-@shared_task
+@app.task(base=QueueOnce, once={"graceful": True})
 def debug_chrome_bot():
     logger.info("[DEBUG_CHROME_BOT] 🚀 Start 🚀")
     with HumanlikeChromeSeleniumBot() as bot:
