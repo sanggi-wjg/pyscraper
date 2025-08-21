@@ -1,4 +1,6 @@
 import logging
+from decimal import Decimal, InvalidOperation
+from typing import Any
 from urllib.parse import urlparse
 
 from selenium.common import NoSuchElementException
@@ -43,10 +45,36 @@ def safe_extract_attr_by_bot(element: WebElement, by: str, selector: str, attr: 
         return ""
 
 
-def clean_url(url: str) -> str:
+def clean_url_text(url: str) -> str:
     try:
         parsed = urlparse(url)
         return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-    except:
+    except ValueError:
         logger.warning(f"Failed to clean url, {url}")
         return url
+
+
+def clean_price_text(price: str) -> str:
+    return price.replace("₩", "").replace(",", "").replace("원", "").strip()
+
+
+def clean_discount_text(discount: str) -> str:
+    return discount.replace("%", "").strip()
+
+
+def to_decimal(value: Any, default: float = 0):
+    try:
+        return Decimal(value)
+    except (ValueError, TypeError, InvalidOperation):
+        raise
+
+
+def to_discount_percent(value: Any, default: float = 0):
+    try:
+        float_val = float(value)
+        if 0 <= float_val <= 1:
+            return int(float_val * 100)
+        else:
+            return int(float_val)
+    except (ValueError, TypeError):
+        raise

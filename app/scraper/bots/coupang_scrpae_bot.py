@@ -5,7 +5,7 @@ from app.enums.channel_enum import ChannelEnum
 from app.scraper.engine.chrome_bot import HumanlikeChromeSeleniumBot
 from app.scraper.model.scrape_result import ScrapeResult
 from app.scraper.model.scraper_models import ScrapedProductModel
-from app.util.util_scrape import safe_extract_text_by_bot, safe_extract_attr_by_bot, clean_url
+from app.util.util_scrape import safe_extract_text_by_bot, safe_extract_attr_by_bot, clean_url_text
 
 
 class CoupangScrapeBot(HumanlikeChromeSeleniumBot):
@@ -60,7 +60,7 @@ class CoupangScrapeBot(HumanlikeChromeSeleniumBot):
                     name=name,
                     price=price,
                     discount=discount,
-                    url=clean_url(url),
+                    url=clean_url_text(url),
                 )
             )
 

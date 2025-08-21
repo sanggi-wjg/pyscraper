@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, field_validator, Field, ConfigDict
 
+from app.util.util_scrape import to_decimal, clean_price_text, clean_discount_text, to_discount_percent
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,13 +21,9 @@ class ScrapedProductModel(BaseModel):
     @classmethod
     def convert_price(cls, value):
         if isinstance(value, str):
-            value = value.replace("₩", "").replace(",", "").replace("원", "").strip()
+            value = clean_price_text(value)
 
-        try:
-            return Decimal(value)
-        except (ValueError, TypeError):
-            logger.warning(f"Invalid price format. Using default value. Please check your input: {value}")
-            return Decimal(0)
+        return to_decimal(value)
 
     @field_validator("discount", mode="before")
     @classmethod
@@ -34,10 +32,6 @@ class ScrapedProductModel(BaseModel):
             return None
 
         if isinstance(value, str):
-            value = value.replace("%", "").strip()
+            value = clean_discount_text(value)
 
-        float_val = float(value)
-        if 0 <= float_val <= 1:
-            return int(float_val * 100)
-        else:
-            return int(float_val)
+        return to_discount_percent(value)

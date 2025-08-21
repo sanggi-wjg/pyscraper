@@ -21,10 +21,10 @@ class FitpetMallScrapeBot(HumanlikeChromeSeleniumBot):
 
         self.wait_and_type(By.CLASS_NAME, "SearchBarInputText__StyledInput-sc-cc34593b-1", query)
         search_box = self.find_element(By.CLASS_NAME, "SearchBarInputText__StyledInput-sc-cc34593b-1")
-        search_box.send_keys(Keys.ENTER)
+        if not search_box:
+            return self
 
-        # self.behavior.random_delay()
-        # self.human_mouse_movement()
+        search_box.send_keys(Keys.ENTER)
         return self
 
     def click_searched_product(self, index: int = 0) -> "FitpetMallScrapeBot":
