@@ -42,7 +42,7 @@ class Scraper(ABC):
                 response = client.get(url, headers=self.fake_headers)
                 response.raise_for_status()
                 return response
-        except httpx.RequestError as e:
+        except httpx.HTTPError as e:
             logger.error(f"Request error for URL {url}: {e}")
             return None
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import logging
 import random
 import time
@@ -70,7 +68,7 @@ def scrape_products_task_by_bot():
 
         for keyword in keywords:
             scrape_result = bot.search(keyword.word).scrape()
-            bot.human_scroll()
+            bot.human_scroll().human_mouse_movement()
             product_service.sync_product(scrape_result, keyword.id)
 
     logger.info("[SCRAPE_PRODUCTS_TASK_BY_BOT] 😎 Finished 😎")
