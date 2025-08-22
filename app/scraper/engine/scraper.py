@@ -77,9 +77,13 @@ class HttpScraper(Scraper):
             logger.error(f"Failed to retrieve data from URL: {search_url}")
             return ScrapeResult(False, self.channel, [], "Failed to retrieve data from the URL.")
 
-        extracted_products = self._transform(response)
-        logger.info(f"Scraped: {extracted_products}")
-        return ScrapeResult(True, self.channel, extracted_products, None)
+        try:
+            extracted_products = self._transform(response)
+            logger.info(f"Scraped: {extracted_products}")
+            return ScrapeResult(True, self.channel, extracted_products, None)
+        except Exception as e:
+            logger.error(f"Error occurred while scraping: {e}")
+            return ScrapeResult(False, self.channel, [], f"Error occurred while scraping: {e}")
 
 
 class BeautifulSoupScraper(Scraper):
@@ -115,7 +119,11 @@ class BeautifulSoupScraper(Scraper):
             logger.error(f"Failed to retrieve data from URL: {search_url}")
             return ScrapeResult(False, self.channel, [], "Failed to retrieve data from the URL.")
 
-        parser = self._get_parser(response)
-        extracted_products = self._extract(parser)
-        logger.info(f"Scraped: {extracted_products}")
-        return ScrapeResult(True, self.channel, extracted_products, None)
+        try:
+            parser = self._get_parser(response)
+            extracted_products = self._extract(parser)
+            logger.info(f"Scraped: {extracted_products}")
+            return ScrapeResult(True, self.channel, extracted_products, None)
+        except Exception as e:
+            logger.error(f"Error occurred while scraping: {search_url}")
+            return ScrapeResult(False, self.channel, [], f"Error occurred while scraping: {e}")
