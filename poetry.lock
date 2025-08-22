@@ -231,6 +231,20 @@ zookeeper = ["kazoo (>=1.3.1)"]
 zstd = ["zstandard (==0.23.0)"]
 
 [[package]]
+name = "celery-once"
+version = "3.0.1"
+description = "Allows you to prevent multiple execution and queuing of celery tasks."
+optional = false
+python-versions = "*"
+files = [
+    {file = "celery_once-3.0.1.tar.gz", hash = "sha256:9098730d6a84a91ccd84868c4730a81487fd0ffb7220cb1836d2b928542159d0"},
+]
+
+[package.dependencies]
+celery = "*"
+redis = ">=2.10.2"
+
+[[package]]
 name = "celery-types"
 version = "0.23.0"
 description = "Type stubs for Celery and its related packages"
@@ -2903,4 +2917,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "404f53678d9fc5e26dd2a24247c8a705dec85f1a99a6795062325900a0a41e45"
+content-hash = "62194efd83b1eeee87a3d50a8bdda624389db639bd6895dc834ae513e42de067"

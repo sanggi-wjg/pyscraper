@@ -8,14 +8,14 @@ from selenium.common import MoveTargetOutOfBoundsException
 from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.remote.webelement import WebElement
 
-from app.scraper.engine.bot_behavior import HumanBehavior
+from app.scraper.engine.bot_behavior import SeleniumBotBehavior
 
 logger = logging.getLogger(__name__)
 
 
 class SeleniumBotActionStrategy(ABC):
 
-    def __init__(self, behavior: HumanBehavior):
+    def __init__(self, behavior: SeleniumBotBehavior):
         self.behavior = behavior
 
     @abstractmethod
